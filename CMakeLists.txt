@@ -35,7 +35,7 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(Macropad Macropad.c )
+add_executable(Macropad Macropad.c)
 
 pico_set_program_name(Macropad "Macropad")
 pico_set_program_version(Macropad "0.1")
