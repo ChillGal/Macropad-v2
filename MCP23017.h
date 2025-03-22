@@ -41,6 +41,8 @@
 #define MCP23017_REG_OLATA      0x14 // Output Latching
 #define MCP23017_REG_OLATB      0x15
 
+typedef uint8_t *byte;
+
 typedef struct {
     
     // I2C instance/Handle
@@ -55,9 +57,20 @@ typedef struct {
 uint8_t MCP23017_Initialise(MCP23017 *dev, i2c_inst_t *i2c_instance, uint8_t MCP23017_ADDRESS);
 
 uint8_t MCP23017_ReadIO(MCP23017 *dev);
+
 void MCP23017_WriteIO(MCP23017 *dev, uint8_t *data);
-void MCP23017_SetIOMODE(MCP23017 *dev, uint8_t *mode);
+
+void MCP23017_SetIODirection(MCP23017 *dev, uint8_t *direction);
+
+void MCP23017_SetSingleIODirection(MCP23017 *dev, uint8_t *direction, uint8_t gpio);
+
+void MCP23017_SetIOPolarity(MCP23017 *dev, uint8_t *polarity);
+
+void MCP23017_SetSingleIOPolarity(MCP23017 *dev, uint8_t *polarity, uint8_t gpio);
+
 void MCP23017_SetPullups(MCP23017 *dev, uint8_t *pullup);
+
+void MCP23017_SetSinglePullup(MCP23017 *dev, uint8_t *pullup, uint8_t gpio);
 
 // Direct register manipulation
 
