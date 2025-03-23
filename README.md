@@ -6,15 +6,14 @@
 - Nothing yet
 
 ### In progress
-- Nothing yet
+- Add MCP23017 support and figure out interrupt handling
 
 ### To do 
 - Add Neopixel support
-- Add MCP23017 support and figure out interrupt handling
 - Add SD card support
 - Add SSD1306 support
 - Add USB HID support
-- Add USB Serial support and support for key configuration over serial
+- Add USB Serial support and support for key configuration over serial - maybe via local web server?
 - Add Information(build instructions, pin configurations, specifications, etc) to README
 - Add PCB design files 
 
