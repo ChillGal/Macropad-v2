@@ -1,0 +1,27 @@
+.program Neopixel
+
+; Handle timing functions for controlling neopixels
+; Neopixel protocol runs at 800KHz using a square wave
+
+.wrap_target
+
+.wrap
+
+% c-sdk {
+    void PIO_Neopixel_Initialise(PIO pio, uint statemachine, uint offset, uint pin, float divisor) {
+        // Set up state machine
+        pio_sm_config config = neopixel_program_get_default_config(offset);
+
+        // Specifies pin for PIO to control
+        pio_gpio_init(pio, pin, 1);
+
+        // Set pin direction
+        pio_sm_set_consecutive_pindirs(pio, sm, pin, 1, true);
+
+        // Set clock divider
+        sm_config_set_clkdiv(&c, div);
+
+        // Load config and go to start of program
+        pio_sm_init(pio, sm, offset, &config);
+    }
+}
