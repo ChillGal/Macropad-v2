@@ -4,8 +4,9 @@
  *  
  *  Author: Jennifer Chan
  *  Created: 22/03/2025
- *  Updated: 22/03/2025
+ *  Updated: 23/03/2025
  *  Revision: 0.1
+ *  Datasheet: https://ww1.microchip.com/downloads/aemDocuments/documents/APID/ProductDocuments/DataSheets/MCP23017-Data-Sheet-DS20001952.pdf
  * 
 */
 
@@ -55,22 +56,29 @@ typedef struct {
 } MCP23017;
 
 uint8_t MCP23017_Initialise(MCP23017 *dev, i2c_inst_t *i2c_instance, uint8_t MCP23017_ADDRESS);
+// IO
+uint8_t MCP23017_GetIO(MCP23017 *dev);
+void MCP23017_SetIO(MCP23017 *dev, uint8_t *data);
+uint8_t MCP23017_GetSingleIO(MCP23017 *dev, uint8_t gpio);
+void MCP23017_SetSingleIO(MCP23017 *dev, uint8_t value, uint8_t gpio);
 
-uint8_t MCP23017_ReadIO(MCP23017 *dev);
-
-void MCP23017_WriteIO(MCP23017 *dev, uint8_t *data);
-
+// IO direction
+uint8_t MCP23017_GetIODirection(MCP23017 *dev, uint8_t bank);
 void MCP23017_SetIODirection(MCP23017 *dev, uint8_t *direction);
+uint8_t MCP23017_GetSingleIODirection(MCP23017 *dev, uint8_t gpio);
+void MCP23017_SetSingleIODirection(MCP23017 *dev, uint8_t direction, uint8_t gpio);
 
-void MCP23017_SetSingleIODirection(MCP23017 *dev, uint8_t *direction, uint8_t gpio);
-
+// IO polarity
+uint8_t MCP23017_GetIOPolarity(MCP23017 *dev, uint8_t bank);
 void MCP23017_SetIOPolarity(MCP23017 *dev, uint8_t *polarity);
+uint8_t MCP23017_GetSingleIOPolarity(MCP23017 *dev, uint8_t gpio);
+void MCP23017_SetSingleIOPolarity(MCP23017 *dev, uint8_t polarity, uint8_t gpio);
 
-void MCP23017_SetSingleIOPolarity(MCP23017 *dev, uint8_t *polarity, uint8_t gpio);
-
+// IO pullups
+uint8_t MCP23017_GetPullups(MCP23017 *dev, uint8_t bank);
 void MCP23017_SetPullups(MCP23017 *dev, uint8_t *pullup);
-
-void MCP23017_SetSinglePullup(MCP23017 *dev, uint8_t *pullup, uint8_t gpio);
+uint8_t MCP23017_GetSinglePullup(MCP23017 *dev, uint8_t gpio);
+void MCP23017_SetSinglePullup(MCP23017 *dev, uint8_t pullup, uint8_t gpio);
 
 // Direct register manipulation
 
