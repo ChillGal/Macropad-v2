@@ -24,31 +24,41 @@
 
 int main()
 {
-    stdio_init_all();
+    // stdio_init_all();
 
-    // SPI initialisation. This example will use SPI at 1MHz.
-    spi_init(SPI_PORT, 1000*1000);
-    gpio_set_function(PIN_MISO, GPIO_FUNC_SPI);
-    gpio_set_function(PIN_CS,   GPIO_FUNC_SIO);
-    gpio_set_function(PIN_SCK,  GPIO_FUNC_SPI);
-    gpio_set_function(PIN_MOSI, GPIO_FUNC_SPI);
+    // // SPI initialisation. This example will use SPI at 1MHz.
+    // spi_init(SPI_PORT, 1000*1000);
+    // gpio_set_function(PIN_MISO, GPIO_FUNC_SPI);
+    // gpio_set_function(PIN_CS,   GPIO_FUNC_SIO);
+    // gpio_set_function(PIN_SCK,  GPIO_FUNC_SPI);
+    // gpio_set_function(PIN_MOSI, GPIO_FUNC_SPI);
     
-    // Chip select is active-low, so we'll initialise it to a driven-high state
-    gpio_set_dir(PIN_CS, GPIO_OUT);
-    gpio_put(PIN_CS, 1);
-    // For more examples of SPI use see https://github.com/raspberrypi/pico-examples/tree/master/spi
+    // // Chip select is active-low, so we'll initialise it to a driven-high state
+    // gpio_set_dir(PIN_CS, GPIO_OUT);
+    // gpio_put(PIN_CS, 1);
+    // // For more examples of SPI use see https://github.com/raspberrypi/pico-examples/tree/master/spi
 
-    // I2C Initialisation. Using it at 400Khz.
-    i2c_init(I2C_PORT, 400*1000);
+    // // I2C Initialisation. Using it at 400Khz.
+    // i2c_init(I2C_PORT, 400*1000);
     
-    gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
-    gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
-    gpio_pull_up(I2C_SDA);
-    gpio_pull_up(I2C_SCL);
-    // For more examples of I2C use see https://github.com/raspberrypi/pico-examples/tree/master/i2c
+    // gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
+    // gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
+    // gpio_pull_up(I2C_SDA);
+    // gpio_pull_up(I2C_SCL);
+    // // For more examples of I2C use see https://github.com/raspberrypi/pico-examples/tree/master/i2c
 
+    // while (true) {
+    //     printf("Hello, world!\n");
+    //     sleep_ms(1000);
+    // }
+
+    const uint LED_PIN = 25; // LED pin is fixed at 25
+    gpio_init(LED_PIN);
+    gpio_set_dir(LED_PIN, GPIO_OUT);
     while (true) {
-        printf("Hello, world!\n");
-        sleep_ms(1000);
+        gpio_put(LED_PIN, 0);
+        sleep_ms(100);
+        gpio_put(LED_PIN, 1);
+        sleep_ms(100);
     }
 }
