@@ -52,6 +52,14 @@ uint8_t MCP23017_Initialise(MCP23017 *dev, i2c_inst_t *i2c_instance, uint8_t MCP
     return 0;
 }
 
+uint8_t MCP23017_GetDefaults(MCP23017 *dev) {
+    uint8_t defaults[2] = 0;
+    defaults[0] = MCP23017_ReadRegister(dev, MCP23017_REG_DEFVALA); // Bank A
+    defaults[1] = MCP23017_ReadRegister(dev, MCP23017_REG_DEFVALB); // Bank B
+    return defaults;
+
+}
+
 // Read all 16 GPIOs at once
 uint8_t MCP23017_GetIO(MCP23017 *dev) {
     uint8_t data[2] = 0;
@@ -318,6 +326,75 @@ void MCP23017_SetSinglePullup(MCP23017 *dev, uint8_t pullup, uint8_t gpio) {
     else if ((pullup == 0) && (current_pullup != (current_pullup - bitmask))){ // Change from 1 to 0
         current_pullup = (current_pullup - bitmask);
         MCP23017_WriteRegister(dev,MCP23017_REG_IPOLB, &current_pullup);
+    }
+    else {
+        return; // Do nothing
+    }
+}
+
+uint8_t MCP23017_GetInterruptChange(MCP23017 *dev, uint8_t bank) {
+    if (bank = 0) {
+        return MCP23017_ReadRegister(dev, MCP23017_REG_INTCONA);
+    }
+    else {
+        return MCP23017_ReadRegister(dev, MCP23017_REG_INTCONB);
+    }
+}
+
+void MCP23017_SetInterruptChange(MCP23017 *dev, uint8_t *interrupt) {
+    MCP23017_WriteRegister(dev,MCP23017_REG_INTCONA, &interrupt[0]);
+    MCP23017_WriteRegister(dev,MCP23017_REG_INTCONB, &interrupt[1]);
+}
+
+uint8_t MCP23017_GetSingleInterruptChange(MCP23017 *dev, uint8_t gpio) {
+    uint8_t current_interrupt = 0;
+    uint8_t bitmask = 1;
+    uint8_t data = 0;
+    uint8_t bitmask = 1; // 0000 0001
+    // Read Bank and extract bit
+    if (gpio < 7) { // Bank A
+        data = MCP23017_ReadRegister(dev, MCP23017_REG_INTCONA);
+    }
+    else{ // Bank B
+        gpio =-8; // shift to keep within 0-7
+        data = MCP23017_ReadRegister(dev, MCP23017_REG_INTCONB);
+    }
+    bitmask = bitmask << gpio; // Bit shift
+    if (bitmask == (data & bitmask)) { // Means bit is 1
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}
+
+void MCP23017_SetSingleInterruptChange(MCP23017 *dev, uint8_t interrupt, uint8_t gpio) {
+    uint8_t current_interrupt = 0;
+    uint8_t bitmask = 1; // 0000 0001
+
+    // Handle other values outside of 0 or 1
+    if (interrupt > 1) {
+        interrupt = 1;
+    }
+    
+    // Set the bitmask and get current polarity
+    if (gpio <= 7) { // Bank A
+        current_interrupt = MCP23017_ReadRegister(dev, MCP23017_REG_GPPUA);
+    }
+    else { // Bank B
+        gpio =- 8;
+        current_interrupt = MCP23017_ReadRegister(dev, MCP23017_REG_GPPUB);
+    }
+    bitmask = bitmask << gpio; // Shift bit to correct IO to change
+
+    // Compare polarity vs bank polarity
+    if ((interrupt == 1) && (current_interrupt != (current_interrupt | bitmask))) { // Change from 0 to 1
+        current_interrupt = (current_interrupt | bitmask);
+        MCP23017_WriteRegister(dev,MCP23017_REG_IPOLA, &current_interrupt);
+    }
+    else if ((interrupt == 0) && (current_interrupt != (current_interrupt - bitmask))){ // Change from 1 to 0
+        current_interrupt = (current_interrupt - bitmask);
+        MCP23017_WriteRegister(dev,MCP23017_REG_IPOLB, &current_interrupt);
     }
     else {
         return; // Do nothing
