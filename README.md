@@ -7,9 +7,9 @@
 
 ### In progress
 - Add MCP23017 support and figure out interrupt handling
+- Add Neopixel support
 
 ### To do 
-- Add Neopixel support
 - Add SD card support
 - Add SSD1306 support
 - Add USB HID support
