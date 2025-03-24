@@ -54,9 +54,10 @@ target_include_directories(Macropad PRIVATE
 )
 
 # Add any user requested libraries
-target_link_libraries(Macropad 
+target_link_libraries(Macropad
         hardware_spi
         hardware_i2c
+        hardware_pio
         )
 
 pico_add_extra_outputs(Macropad)
