@@ -29,3 +29,18 @@ https://www.raspberrypi.com/documentation/microcontrollers/c_sdk.html
 ### Build
 Pending
 
+### MCP23017 driver progress
+Based on IOCON.BANK = 0 in datasheet
+#### Registers Done
+- IO Direction
+- IO Polarity
+- IO Interrupt Enable
+- IO Default Values
+- IO Interrupt Control (Interrupt on change)
+- IO Values
+- IO Pullups
+#### Registers needing implementation
+- Interrupt Flag
+- Interrupt Captured Value
+- Output Latching
+- IO Expander Configuration
