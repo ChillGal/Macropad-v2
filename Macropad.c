@@ -51,6 +51,9 @@ int main()
     //     printf("Hello, world!\n");
     //     sleep_ms(1000);
     // }
+    i2c_init(I2C_PORT, 400*1000);
+    MCP23017 mcp;
+    MCP23017_Initialise(&mcp, I2C_PORT, 0x20);
 
     const uint LED_PIN = 25; // LED pin is fixed at 25
     gpio_init(LED_PIN);
