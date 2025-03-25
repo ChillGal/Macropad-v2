@@ -58,7 +58,7 @@ typedef struct {
 uint8_t MCP23017_Initialise(MCP23017 *dev, i2c_inst_t *i2c_instance, uint8_t MCP23017_ADDRESS);
 
 // IO
-uint8_t MCP23017_GetIO(MCP23017 *dev);
+uint8_t *MCP23017_GetIO(MCP23017 *dev);
 void MCP23017_SetIO(MCP23017 *dev, uint8_t *data);
 uint8_t MCP23017_GetSingleIO(MCP23017 *dev, uint8_t gpio);
 void MCP23017_SetSingleIO(MCP23017 *dev, uint8_t value, uint8_t gpio);
@@ -106,7 +106,7 @@ void MCP23017_SetSingleInterruptEnable(MCP23017 *dev, uint8_t interrupt, uint8_t
 uint8_t MCP23017_ReadRegister(MCP23017 *dev, uint8_t reg_address); 
 
 // Read <length> bytes from specified register <reg_address>
-uint8_t MCP23017_ReadRegisters(MCP23017 *dev, uint8_t reg_address, uint8_t length);
+uint8_t *MCP23017_ReadRegisters(MCP23017 *dev, uint8_t reg_address, uint8_t length);
 
 // Write a single byte of data <data> to specified register <reg_address>
 void MCP23017_WriteRegister(MCP23017 *dev, uint8_t reg_address, uint8_t *data);
