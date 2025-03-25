@@ -67,14 +67,30 @@ void MCP23017_SetIO(MCP23017 *dev, uint8_t *data) {
 }
 
 uint8_t MCP23017_GetSingleIO(MCP23017 *dev, uint8_t gpio) {
-    return 0;
-}
+    uint8_t data = 0;
+    uint8_t bitmask = 1; // 0000 0001
+    // Read Bank and extract bit
+    if (gpio < 7) { // Bank A
+        data = MCP23017_ReadRegister(dev, MCP23017_REG_GPIOA);
+    }
+    else{ // Bank B
+        gpio =-8; // shift to keep within 0-7
+        data = MCP23017_ReadRegister(dev, MCP23017_REG_GPIOB);
+    }
+    bitmask = bitmask << gpio;
+    if (bitmask == (data & bitmask)) { // Means bit is 1
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}   
 
 void MCP23017_SetSingleIO(MCP23017 *dev, uint8_t io, uint8_t gpio) {
     uint8_t current_io = 0;
-   uint8_t bitmask = 1;
+    uint8_t bitmask = 1;
 
-   // Handle other values outside of 0 or 1
+    // Handle other values outside of 0 or 1
     if (io > 1) {
         io = 1;
     }
@@ -270,8 +286,6 @@ void MCP23017_SetPullups(MCP23017 *dev, uint8_t *pullup) {
 
 // Get single IO determined by <gpio>
 uint8_t MCP23017_GetSinglePullup(MCP23017 *dev, uint8_t gpio) {
-    uint8_t current_pullups = 0;
-    uint8_t bitmask = 1;
     uint8_t data = 0;
     uint8_t bitmask = 1; // 0000 0001
     // Read Bank and extract bit
@@ -339,8 +353,6 @@ void MCP23017_SetInterruptChange(MCP23017 *dev, uint8_t *interrupt) {
 }
 
 uint8_t MCP23017_GetSingleInterruptChange(MCP23017 *dev, uint8_t gpio) {
-    uint8_t current_interrupt = 0;
-    uint8_t bitmask = 1;
     uint8_t data = 0;
     uint8_t bitmask = 1; // 0000 0001
     // Read Bank and extract bit
@@ -408,8 +420,6 @@ void MCP23017_SetDefaults(MCP23017 *dev, uint8_t *defaults) {
 }
 
 uint8_t MCP23017_GetSingleDefault(MCP23017 *dev, uint8_t gpio) {
-    uint8_t current_defaults = 0;
-    uint8_t bitmask = 1;
     uint8_t data = 0;
     uint8_t bitmask = 1; // 0000 0001
     // Read Bank and extract bit
@@ -531,7 +541,7 @@ void MCP23017_SetSingleInterruptEnable(MCP23017 *dev, uint8_t interrupt, uint8_t
 
 // Reads 1 byte into <data> from the register specified by <reg_address>
 uint8_t MCP23017_ReadRegister(MCP23017 *dev, uint8_t reg_address) {
-    uint8_t data;
+    uint8_t data = 0;
     i2c_write_blocking(dev->i2c_instance, MCP23017_I2C_ADDRESS, &reg_address,1, true);
     i2c_read_blocking(dev->i2c_instance, MCP23017_I2C_ADDRESS, &data, 1, false);
     return data;
