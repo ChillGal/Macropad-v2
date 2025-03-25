@@ -52,6 +52,10 @@ int main()
     //     sleep_ms(1000);
     // }
     i2c_init(I2C_PORT, 400*1000);
+    gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
+    gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
+    gpio_pull_up(I2C_SDA);
+    gpio_pull_up(I2C_SCL);
     MCP23017 mcp;
     uint8_t result = MCP23017_Initialise(&mcp, I2C_PORT, 0x20);
     int sleep_time = 100; // 100ms default
