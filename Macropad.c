@@ -53,15 +53,18 @@ int main()
     // }
     i2c_init(I2C_PORT, 400*1000);
     MCP23017 mcp;
-    MCP23017_Initialise(&mcp, I2C_PORT, 0x20);
-
+    uint8_t result = MCP23017_Initialise(&mcp, I2C_PORT, 0x20);
+    int sleep_time = 100; // 100ms default
+    if (result == 0) {
+        sleep_time = 1000;
+    }
     const uint LED_PIN = 25; // LED pin is fixed at 25
     gpio_init(LED_PIN);
     gpio_set_dir(LED_PIN, GPIO_OUT);
     while (true) {
         gpio_put(LED_PIN, 0);
-        sleep_ms(100);
+        sleep_ms(sleep_time);
         gpio_put(LED_PIN, 1);
-        sleep_ms(100);
+        sleep_ms(sleep_time);
     }
 }
