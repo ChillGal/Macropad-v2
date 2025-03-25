@@ -4,7 +4,7 @@
  *  
  *  Author: Jennifer Chan
  *  Created: 22/03/2025
- *  Updated: 23/03/2025
+ *  Updated: 25/03/2025
  *  Revision: 0.1
  *  Datasheet: https://ww1.microchip.com/downloads/aemDocuments/documents/APID/ProductDocuments/DataSheets/MCP23017-Data-Sheet-DS20001952.pdf
  * 
@@ -27,7 +27,7 @@
 #define MCP23017_REG_GPINTENB   0x05
 #define MCP23017_REG_DEFVALA    0x06 // Default Value
 #define MCP23017_REG_DEFVALB    0x07
-#define MCP23017_REG_INTCONA    0x08 // Interrupt on GPIO change
+#define MCP23017_REG_INTCONA    0x08 // Interrupt on GPIO change aka Interrupt control
 #define MCP23017_REG_INTCONB    0x09
 #define MCP23017_REG_IOCONA     0x0A // IO expander configuration
 #define MCP23017_REG_IOCONB     0x0B
@@ -93,6 +93,12 @@ uint8_t MCP23017_GetDefaults(MCP23017 *dev, uint8_t bank);
 void MCP23017_SetDefaults(MCP23017 *dev, uint8_t *defaults);
 uint8_t MCP23017_GetSingleDefault(MCP23017 *dev, uint8_t gpio);
 void MCP23017_SetSingleDefault(MCP23017 *dev, uint8_t defaults, uint8_t gpio);
+
+// GPIO interrupt enable
+uint8_t MCP23017_GetInterruptEnable(MCP23017 *dev, uint8_t bank);
+void MCP23017_SetInterruptEnable(MCP23017 *dev, uint8_t *interrupt);
+uint8_t MCP23017_GetSingleInterruptEnable(MCP23017 *dev, uint8_t gpio);
+void MCP23017_SetSingleInterruptEnable(MCP23017 *dev, uint8_t interrupt, uint8_t gpio);
 
 // Direct register manipulation
 
