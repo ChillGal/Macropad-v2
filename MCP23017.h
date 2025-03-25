@@ -57,9 +57,6 @@ typedef struct {
 
 uint8_t MCP23017_Initialise(MCP23017 *dev, i2c_inst_t *i2c_instance, uint8_t MCP23017_ADDRESS);
 
-// Default values
-uint8_t MCP23017_GetDefaults(MCP23017 *dev);
-
 // IO
 uint8_t MCP23017_GetIO(MCP23017 *dev);
 void MCP23017_SetIO(MCP23017 *dev, uint8_t *data);
@@ -89,6 +86,13 @@ uint8_t MCP23017_GetInterruptChange(MCP23017 *dev, uint8_t bank);
 void MCP23017_SetInterruptChange(MCP23017 *dev, uint8_t *interrupt);
 uint8_t MCP23017_GetSingleInterruptChange(MCP23017 *dev, uint8_t gpio);
 void MCP23017_SetSingleInterruptChange(MCP23017 *dev, uint8_t interrupt, uint8_t gpio);
+
+
+// Default values to compare against for interrupt on change
+uint8_t MCP23017_GetDefaults(MCP23017 *dev, uint8_t bank);
+void MCP23017_SetDefaults(MCP23017 *dev, uint8_t *defaults);
+uint8_t MCP23017_GetSingleDefault(MCP23017 *dev, uint8_t gpio);
+void MCP23017_SetSingleDefault(MCP23017 *dev, uint8_t defaults, uint8_t gpio);
 
 // Direct register manipulation
 
