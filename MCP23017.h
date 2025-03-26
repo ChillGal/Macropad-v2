@@ -4,7 +4,7 @@
  *  
  *  Author: Jennifer Chan
  *  Created: 22/03/2025
- *  Updated: 25/03/2025
+ *  Updated: 26/03/2025
  *  Revision: 0.1
  *  Datasheet: https://ww1.microchip.com/downloads/aemDocuments/documents/APID/ProductDocuments/DataSheets/MCP23017-Data-Sheet-DS20001952.pdf
  * 
@@ -12,8 +12,6 @@
 
 #ifndef _MCP23017_H
 #define _MCP23017_H
-
-#include "hardware/i2c.h" // I2C abstraction
 
 // I2C address
 #define MCP23017_I2C_ADDRESS    (0x20 << 1) // Default address is 0x20. Range from 0x20-0x27, bit ordering is 0 0 1 0 0 A2 A1 A0

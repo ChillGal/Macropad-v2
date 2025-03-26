@@ -4,7 +4,7 @@
  *  
  *  Author: Jennifer Chan
  *  Created: 22/03/2025
- *  Updated: 25/03/2025
+ *  Updated: 26/03/2025
  *  Revision: 0.1
  *  Datasheet: https://ww1.microchip.com/downloads/aemDocuments/documents/APID/ProductDocuments/DataSheets/MCP23017-Data-Sheet-DS20001952.pdf
  * 
@@ -21,9 +21,11 @@
 #include "hardware/i2c.h"
 #include "MCP23017.h"
 #include "pico/stdlib.h"
-#include <stdlib.h>
+//#include "pico/malloc.h"
+#include <malloc.h>
 
 uint8_t MCP23017_Initialise(MCP23017 *dev, i2c_inst_t *i2c_instance, uint8_t MCP23017_ADDRESS) {
+    
     
     // Checks HW I2C is functional + Valid MCP23017 address range
     if (i2c_instance == NULL || MCP23017_ADDRESS < 0b0100000 || MCP23017_ADDRESS > 0b0100111) { // 0x20 to 0x27
