@@ -124,10 +124,10 @@ void MCP23017_SetSingleIO(MCP23017 *dev, uint8_t io, uint8_t gpio) {
 uint8_t MCP23017_GetIODirection(MCP23017 *dev, uint8_t bank) {
     // Determine Bank to read
     if (bank = 0) {
-        return MCP23017_ReadRegister(dev, MCP23017_REG_GPIOA);
+        return MCP23017_ReadRegister(dev, MCP23017_REG_IODIRA);
     }
     else {
-        return MCP23017_ReadRegister(dev, MCP23017_REG_GPIOB);
+        return MCP23017_ReadRegister(dev, MCP23017_REG_IODIRA);
     }
 }
 
