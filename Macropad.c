@@ -16,16 +16,26 @@
 // I2C defines
 // This example will use I2C0 on GPIO8 (SDA) and GPIO9 (SCL) running at 400KHz.
 // Pins can be changed, see the GPIO function select table in the datasheet for information on GPIO assignments
-#define I2C_PORT i2c0
+#define I2C_PORT i2c1
 #define I2C_SDA 6
 #define I2C_SCL 7
+#define LED_PIN 25 // LED pin is fixed at 25
 
-
+void setup_i2c(){
+    i2c_init(I2C_PORT, 400*1000);
+    gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
+    gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
+    gpio_pull_up(I2C_SDA);
+    gpio_pull_up(I2C_SCL);
+    gpio_init(LED_PIN);
+    gpio_set_dir(LED_PIN, GPIO_OUT);
+    gpio_put(LED_PIN, 1);
+}
 
 int main()
 {
     stdio_init_all();
-
+    printf("\n \n \n");
     // // SPI initialisation. This example will use SPI at 1MHz.
     // spi_init(SPI_PORT, 1000*1000);
     // gpio_set_function(PIN_MISO, GPIO_FUNC_SPI);
@@ -38,56 +48,58 @@ int main()
     // gpio_put(PIN_CS, 1);
     // // For more examples of SPI use see https://github.com/raspberrypi/pico-examples/tree/master/spi
 
-    // // I2C Initialisation. Using it at 400Khz.
-    // i2c_init(I2C_PORT, 400*1000);
-    
-    // gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
-    // gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
-    // gpio_pull_up(I2C_SDA);
-    // gpio_pull_up(I2C_SCL);
-    // // For more examples of I2C use see https://github.com/raspberrypi/pico-examples/tree/master/i2c
-
-    // while (true) {
-    //     printf("Hello, world!\n");
-    //     sleep_ms(1000);
-    // }
-    i2c_init(I2C_PORT, 400*1000);
-    gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
-    gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
-    gpio_pull_up(I2C_SDA);
-    gpio_pull_up(I2C_SCL);
+    printf("v0.0.7\n");
+    printf("Initialising I2C\n");
+    setup_i2c();
+    printf("Initialising MCP23017\n");
+    uint8_t* send = malloc(sizeof(int));
     MCP23017 mcp;
-    uint8_t *ptr = 0;
     uint8_t result = MCP23017_Initialise(&mcp, I2C_PORT, 0x20);
-    uint8_t *dirptr = malloc(sizeof(uint8_t) * 2);
-    dirptr[0] = 255;
-    dirptr[1] = 255;
-    MCP23017_SetIODirection(&mcp,dirptr);
+    
+    printf("Setting Direction\n");
+    uint8_t *dirptr = malloc(sizeof(uint8_t));
+    *dirptr = 255;
+    *send = 0x00;
+    // MCP23017_SetIODirection(&mcp, dirptr);
+    MCP23017_SetIODirection(&mcp, dirptr);
+    uint8_t da = MCP23017_GetIODirection(&mcp, 0);
+    printf("Direction Function Config: %d\n", da);
+    printf("Direction Done\n\n");
 
-    uint8_t *pullupptr = malloc(sizeof(uint8_t) * 2);
-    pullupptr[0] = 255;
-    pullupptr[1] = 255;
-    MCP23017_SetPullups(&mcp,pullupptr);
-    ptr = MCP23017_GetIO(&mcp);
-    printf("%d", result);
-    int sleep_time = 200; // 10ms default
-    if (result == 1) {
-        sleep_time = 1000;
-    }
-    const uint LED_PIN = 25; // LED pin is fixed at 25
-    gpio_init(LED_PIN);
-    gpio_set_dir(LED_PIN, GPIO_OUT);
-    if (&ptr[0] == 0){
-        gpio_put(LED_PIN, 1);
-    }
-    else {
-        gpio_put(LED_PIN, 0);
-    }
+    printf("Setting Pullups\n");
+    uint8_t *pullupptr = malloc(sizeof(uint8_t));
+    *pullupptr = 0;
+    MCP23017_SetPullups(&mcp, pullupptr);
+    uint8_t pu = MCP23017_GetPullups(&mcp, 0);
+    printf("Pullup config: %d\n", pu);
+    printf("Pullups Done\n\n");
 
-    // while (true) {
-    //     gpio_put(LED_PIN, 0);
-    //     sleep_ms(sleep_time);
-    //     gpio_put(LED_PIN, 1);
-    //     sleep_ms(sleep_time);
-    // }
+    printf("Setting IO\n");
+    uint8_t* buffer = malloc(sizeof(int));
+    *send = 0x12;
+    *buffer = 0;
+    printf("IO Done\n\n");
+
+    int sleep_time = 10; // 200ms default
+
+    // 22   = 0001 0110
+    // 150  = 1001 0110
+    // 152  = 1001 1000
+    // 16   = 0001 0000
+    // 24   = 0001 1000
+    // 180  = 1011 0100
+    // 75   = 0100 1011
+    // 40   = 0010 1000
+    // 215  = 1101 0111
+    // 182  = 1011 0110
+    // 73   = 0100 1001
+    // 54   = 0011 0110
+
+    printf("Loadup done\n");
+
+    while (true) {
+        *buffer = MCP23017_GetIO(&mcp);
+        printf("GPIO: %d\n", *buffer);
+        sleep_ms(sleep_time);
+    }
 }
