@@ -18,68 +18,58 @@
 // Read GPIO
 // write GPIO
 // Pullup
+#include <stdio.h>
 #include "hardware/i2c.h"
 #include "MCP23017.h"
 #include "pico/stdlib.h"
 //#include "pico/malloc.h"
 #include <malloc.h>
 
-uint8_t MCP23017_Initialise(MCP23017 *dev, i2c_inst_t *i2c_instance, uint8_t MCP23017_ADDRESS) {
+uint8_t MCP23017_Initialise(MCP23017 *dev, i2c_inst_t *i2c_instance, uint8_t mcp23017_address) {
     
     
     // Checks HW I2C is functional + Valid MCP23017 address range
-    if (i2c_instance == NULL || MCP23017_ADDRESS < 0b0100000 || MCP23017_ADDRESS > 0b0100111) { // 0x20 to 0x27
+    if (i2c_instance == NULL || mcp23017_address < 0b0100000 || mcp23017_address > 0b0100111) { // 0x20 to 0x27
         return 1;
     }
 
     // Setup struct
     dev->i2c_instance= i2c_instance;
-    dev->GPIOA[0] = 0;
-    dev->GPIOA[1] = 0;
-    dev->GPIOA[2] = 0;
-    dev->GPIOA[3] = 0;
+    dev->mcp23017_i2c_addr = mcp23017_address;
+    dev->io_configuration = 0;
+    dev->io_direction = 0;
+    dev->io_polarity = 0;
+    dev->io_pullup = 0;
+    dev->io_interrupt = 0;
 
-    dev->GPIOA[4] = 0;
-    dev->GPIOA[5] = 0;
-    dev->GPIOA[6] = 0;
-    dev->GPIOA[7] = 0;
-
-    dev->GPIOB[0] = 0;
-    dev->GPIOB[1] = 0;
-    dev->GPIOB[2] = 0;
-    dev->GPIOB[3] = 0;
-
-    dev->GPIOB[4] = 0;
-    dev->GPIOB[5] = 0;
-    dev->GPIOB[6] = 0;
-    dev->GPIOB[7] = 0;
     return 0;
 }
 
 // Read all 16 GPIOs at once
-uint8_t *MCP23017_GetIO(MCP23017 *dev) {
-    uint8_t *data = malloc(sizeof(uint8_t) * 2);
-    data[0] = MCP23017_ReadRegister(dev, MCP23017_REG_GPIOA); // Bank A
-    data[1] = MCP23017_ReadRegister(dev, MCP23017_REG_GPIOB); // Bank B
-    return data;
+uint8_t MCP23017_GetIO(MCP23017 *dev) {
+    return MCP23017_ReadRegister(dev, MCP23017_REG_GPIOA); // Bank A
+    //MCP23017_ReadRegister(dev, MCP23017_REG_GPIOB); // Bank B
 }
 
 // Writes all 16 IO at once
 void MCP23017_SetIO(MCP23017 *dev, uint8_t *data) {
-    MCP23017_WriteRegister(dev, MCP23017_REG_GPIOA, &data[0]);
-    MCP23017_WriteRegister(dev, MCP23017_REG_GPIOB, &data[1]);
+    MCP23017_WriteRegister(dev, MCP23017_REG_GPIOA, data);
+    // MCP23017_WriteRegister(dev, MCP23017_REG_GPIOB, data);
 }
 
 uint8_t MCP23017_GetSingleIO(MCP23017 *dev, uint8_t gpio) {
-    uint8_t data = 0;
+    uint8_t data;
     uint8_t bitmask = 1; // 0000 0001
+    
     // Read Bank and extract bit
     if (gpio < 7) { // Bank A
         data = MCP23017_ReadRegister(dev, MCP23017_REG_GPIOA);
+
     }
-    else{ // Bank B
+    else { // Bank B
         gpio =-8; // shift to keep within 0-7
         data = MCP23017_ReadRegister(dev, MCP23017_REG_GPIOB);
+        //printf("RAW DATA B: %d\n",data);
     }
     bitmask = bitmask << gpio;
     if (bitmask == (data & bitmask)) { // Means bit is 1
@@ -123,18 +113,18 @@ void MCP23017_SetSingleIO(MCP23017 *dev, uint8_t io, uint8_t gpio) {
 
 uint8_t MCP23017_GetIODirection(MCP23017 *dev, uint8_t bank) {
     // Determine Bank to read
-    if (bank = 0) {
+    if (bank == 0) {
         return MCP23017_ReadRegister(dev, MCP23017_REG_IODIRA);
     }
     else {
-        return MCP23017_ReadRegister(dev, MCP23017_REG_IODIRA);
+        return MCP23017_ReadRegister(dev, MCP23017_REG_IODIRB);
     }
 }
 
 // Set all IO direction
 void MCP23017_SetIODirection(MCP23017 *dev, uint8_t *direction) {
-    MCP23017_WriteRegister(dev,MCP23017_REG_IODIRA, &direction[0]);
-    MCP23017_WriteRegister(dev,MCP23017_REG_IODIRB, &direction[1]);
+    MCP23017_WriteRegister(dev, MCP23017_REG_IODIRA, direction);
+    // MCP23017_WriteRegister(dev,MCP23017_REG_IODIRA, direction);
 }
 
 // Get value of IO specified by <gpio>
@@ -150,6 +140,7 @@ uint8_t MCP23017_GetSingleIODirection(MCP23017 *dev, uint8_t gpio) {
         data = MCP23017_ReadRegister(dev, MCP23017_REG_IODIRB);
     }
     bitmask = bitmask << gpio;
+    
     if (bitmask == (data & bitmask)) { // Means bit is 1
         return 1;
     }
@@ -274,18 +265,18 @@ void MCP23017_SetSingleIOPolarity(MCP23017 *dev, uint8_t polarity, uint8_t gpio)
 
 uint8_t MCP23017_GetPullups(MCP23017 *dev, uint8_t bank) {
     // Determine Bank to read
-    if (bank = 0) {
-        return MCP23017_ReadRegister(dev, MCP23017_REG_IPOLA);
+    if (bank == 0) {
+        return MCP23017_ReadRegister(dev, MCP23017_REG_GPPUA);
     }
     else {
-        return MCP23017_ReadRegister(dev, MCP23017_REG_IPOLB);
+        return MCP23017_ReadRegister(dev, MCP23017_REG_GPPUB);
     }
 }
 
 // Set all IO pullups
-void MCP23017_SetPullups(MCP23017 *dev, uint8_t *pullup) {
-    MCP23017_WriteRegister(dev,MCP23017_REG_GPPUA, &pullup[0]);
-    MCP23017_WriteRegister(dev,MCP23017_REG_GPPUB, &pullup[1]);
+void MCP23017_SetPullups(MCP23017* dev, uint8_t* pullup) {
+    MCP23017_WriteRegister(dev, MCP23017_REG_GPPUA, pullup);
+    //MCP23017_WriteRegister(dev,MCP23017_REG_GPPUB, pullup);
 }
 
 // Get single IO determined by <gpio>
@@ -544,25 +535,34 @@ void MCP23017_SetSingleInterruptEnable(MCP23017 *dev, uint8_t interrupt, uint8_t
 }
 
 // Reads 1 byte into <data> from the register specified by <reg_address>
-uint8_t MCP23017_ReadRegister(MCP23017 *dev, uint8_t reg_address) {
-    uint8_t data = 0;
-    i2c_write_blocking(dev->i2c_instance, MCP23017_I2C_ADDRESS, &reg_address,1, true);
-    i2c_read_blocking(dev->i2c_instance, MCP23017_I2C_ADDRESS, &data, 1, false);
-    return data;
+uint8_t MCP23017_ReadRegister(MCP23017* dev, uint8_t reg_address) {
+    uint8_t* data = malloc(sizeof(uint8_t));
+    uint8_t* reg = malloc(sizeof(uint8_t));
+    *reg = reg_address;
+    i2c_write_blocking(dev->i2c_instance, dev->mcp23017_i2c_addr, reg, 1, true);
+    free(reg);
+    i2c_read_blocking(dev->i2c_instance, dev->mcp23017_i2c_addr, data, 1, false);
+    uint8_t out = *data;
+    free(data);
+    return out;
 }
 
 // Maybe not needed?
-uint8_t *MCP23017_ReadRegisters(MCP23017 *dev, uint8_t reg_address, uint8_t length) {
+uint8_t* MCP23017_ReadRegisters(MCP23017 *dev, uint8_t reg_address, uint8_t length) {
     uint8_t *data = malloc(sizeof(uint8_t) * length);
-    i2c_write_blocking(dev->i2c_instance, MCP23017_I2C_ADDRESS, &reg_address, 1, true);
-    for (int i = 0; i < length; i++) {
-        i2c_read_blocking(dev->i2c_instance, MCP23017_I2C_ADDRESS, &data[i], length, false);
-    }
+    uint8_t *reg = malloc(sizeof(uint8_t));
+    *reg = reg_address;
+    i2c_write_blocking(dev->i2c_instance, dev->mcp23017_i2c_addr, reg, 1, true);
+    free(reg);
+    i2c_read_blocking(dev->i2c_instance, dev->mcp23017_i2c_addr, data, length, false);
     return data;
 }
 
 // Writes all of <data> to the register specified by <reg_address>
 void MCP23017_WriteRegister(MCP23017 *dev, uint8_t reg_address, uint8_t *data) {
-    i2c_write_blocking(dev->i2c_instance, MCP23017_I2C_ADDRESS, &reg_address, 1, true);
-    i2c_write_blocking(dev->i2c_instance, MCP23017_I2C_ADDRESS, data, sizeof(data), false);
+    uint8_t* reg = malloc(sizeof(uint8_t));
+    *reg = reg_address;
+    i2c_write_blocking(dev->i2c_instance, dev->mcp23017_i2c_addr, reg, 1, true);
+    free(reg);
+    i2c_write_blocking(dev->i2c_instance, dev->mcp23017_i2c_addr, data, sizeof(*data), false);
 }

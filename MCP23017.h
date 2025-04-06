@@ -14,7 +14,7 @@
 #define _MCP23017_H
 
 // I2C address
-#define MCP23017_I2C_ADDRESS    (0x20 << 1) // Default address is 0x20. Range from 0x20-0x27, bit ordering is 0 0 1 0 0 A2 A1 A0
+#define MCP23017_I2C_ADDRESS    0x20 // Default address is 0x20. Range from 0x20-0x27, bit ordering is 0 0 1 0 0 A2 A1 A0
 
 // Register map - A and B refer to Banks A and B
 #define MCP23017_REG_IODIRA     0x00 // IO direction
@@ -40,23 +40,23 @@
 #define MCP23017_REG_OLATA      0x14 // Output Latching
 #define MCP23017_REG_OLATB      0x15
 
-typedef uint8_t *byte;
-
 typedef struct {
     
     // I2C instance/Handle
     i2c_inst_t *i2c_instance;
+    uint8_t mcp23017_i2c_addr;
+    uint16_t io_configuration;
+    uint16_t io_direction;
+    uint16_t io_polarity;
+    uint16_t io_pullup;
+    uint16_t io_interrupt;
 
-    // GPIO levels
-    uint8_t GPIOA[8];
-    uint8_t GPIOB[8];
-    
 } MCP23017;
 
 uint8_t MCP23017_Initialise(MCP23017 *dev, i2c_inst_t *i2c_instance, uint8_t MCP23017_ADDRESS);
 
 // IO
-uint8_t *MCP23017_GetIO(MCP23017 *dev);
+uint8_t MCP23017_GetIO(MCP23017 *dev);
 void MCP23017_SetIO(MCP23017 *dev, uint8_t *data);
 uint8_t MCP23017_GetSingleIO(MCP23017 *dev, uint8_t gpio);
 void MCP23017_SetSingleIO(MCP23017 *dev, uint8_t value, uint8_t gpio);
@@ -101,7 +101,7 @@ void MCP23017_SetSingleInterruptEnable(MCP23017 *dev, uint8_t interrupt, uint8_t
 // Direct register manipulation
 
 // Read a single byte from specified register <reg_address>
-uint8_t MCP23017_ReadRegister(MCP23017 *dev, uint8_t reg_address); 
+uint8_t MCP23017_ReadRegister(MCP23017* dev, uint8_t reg_address);
 
 // Read <length> bytes from specified register <reg_address>
 uint8_t *MCP23017_ReadRegisters(MCP23017 *dev, uint8_t reg_address, uint8_t length);
