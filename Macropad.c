@@ -14,26 +14,41 @@
 #define PIN_MOSI 19
 
 // I2C defines
-// This example will use I2C0 on GPIO8 (SDA) and GPIO9 (SCL) running at 400KHz.
+// This example will use I2C1 on GPIO6 (SDA) and GPIO7 (SCL) running at 400KHz.
 // Pins can be changed, see the GPIO function select table in the datasheet for information on GPIO assignments
 #define I2C_PORT i2c1
 #define I2C_SDA 6
 #define I2C_SCL 7
 #define LED_PIN 25 // LED pin is fixed at 25
 
-void setup_i2c(){
-    i2c_init(I2C_PORT, 400*1000);
-    gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
-    gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
-    gpio_pull_up(I2C_SDA);
-    gpio_pull_up(I2C_SCL);
-    gpio_init(LED_PIN);
-    gpio_set_dir(LED_PIN, GPIO_OUT);
-    gpio_put(LED_PIN, 1);
+void setup_i2c(i2c_inst_t i2cBus, uint8_t i2cSDA, uint8_t i2cSCL) {
+    i2c_init(&i2cBus, 400*1000);
+    gpio_set_function(i2cSDA, GPIO_FUNC_I2C);
+    gpio_set_function(i2cSCL, GPIO_FUNC_I2C);
+    gpio_pull_up(i2cSDA);
+    gpio_pull_up(i2cSCL);
 }
 
-int main()
-{
+void i2c_scan(i2c_inst_t i2cBus) {
+    printf("Scanning i2c\n");
+    printf("   0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F\n");
+    for (int addr = 0; addr < (1 << 7); ++addr) {
+        if (addr % 16 == 0) {
+            printf("%02x ", addr);
+        }
+        int ret;
+        uint8_t rxdata;
+        if ((addr & 0x78) == 0 || (addr & 0x78) == 0x78)
+            ret = PICO_ERROR_GENERIC;
+        else
+            ret = i2c_read_blocking(&i2cBus, addr, &rxdata, 1, false);
+        printf(ret < 0 ? "." : "@");
+        printf(addr % 16 == 15 ? "\n" : "  ");
+    }
+    printf("Done.\n");
+}
+
+int main() {
     stdio_init_all();
     printf("\n \n \n");
     // // SPI initialisation. This example will use SPI at 1MHz.
@@ -50,7 +65,8 @@ int main()
 
     printf("v0.0.0.1\n");
     printf("Initialising I2C\n");
-    setup_i2c();
+    setup_i2c(*I2C_PORT, I2C_SDA, I2C_SCL);
+    i2c_scan(*I2C_PORT);
     printf("Initialising MCP23017\n");
     uint8_t* send = malloc(sizeof(int));
     MCP23017 mcp;
