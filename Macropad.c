@@ -48,7 +48,7 @@ int main()
     // gpio_put(PIN_CS, 1);
     // // For more examples of SPI use see https://github.com/raspberrypi/pico-examples/tree/master/spi
 
-    printf("v0.0.7\n");
+    printf("v0.0.0.1\n");
     printf("Initialising I2C\n");
     setup_i2c();
     printf("Initialising MCP23017\n");
@@ -57,25 +57,25 @@ int main()
     uint8_t result = MCP23017_Initialise(&mcp, I2C_PORT, 0x20);
     
     printf("Setting Direction\n");
-    uint8_t *dirptr = malloc(sizeof(uint8_t));
-    *dirptr = 255;
+    uint16_t *dirptr = malloc(sizeof(uint16_t));
+    *dirptr = (255 << 8) + 255;
     *send = 0x00;
     // MCP23017_SetIODirection(&mcp, dirptr);
     MCP23017_SetIODirection(&mcp, dirptr);
-    uint8_t da = MCP23017_GetIODirection(&mcp, 0);
+    uint16_t da = MCP23017_GetIODirection(&mcp);
     printf("Direction Function Config: %d\n", da);
     printf("Direction Done\n\n");
 
     printf("Setting Pullups\n");
-    uint8_t *pullupptr = malloc(sizeof(uint8_t));
+    uint16_t *pullupptr = malloc(sizeof(uint16_t));
     *pullupptr = 0;
     MCP23017_SetPullups(&mcp, pullupptr);
-    uint8_t pu = MCP23017_GetPullups(&mcp, 0);
+    uint16_t pu = MCP23017_GetPullups(&mcp);
     printf("Pullup config: %d\n", pu);
     printf("Pullups Done\n\n");
 
     printf("Setting IO\n");
-    uint8_t* buffer = malloc(sizeof(int));
+    uint16_t* buffer = malloc(sizeof(uint16_t));
     *send = 0x12;
     *buffer = 0;
     printf("IO Done\n\n");
