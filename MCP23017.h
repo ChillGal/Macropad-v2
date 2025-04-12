@@ -4,8 +4,8 @@
  *  
  *  Author: Jennifer Chan
  *  Created: 22/03/2025
- *  Updated: 26/03/2025
- *  Revision: 0.1
+ *  Updated: 12/04/2025
+ *  Revision: 0.0.1
  *  Datasheet: https://ww1.microchip.com/downloads/aemDocuments/documents/APID/ProductDocuments/DataSheets/MCP23017-Data-Sheet-DS20001952.pdf
  * 
 */
@@ -45,12 +45,14 @@ typedef struct {
     // I2C instance/Handle
     i2c_inst_t *i2c_instance;
     uint8_t mcp23017_i2c_addr;
+    uint16_t io_value;
     uint16_t io_configuration;
     uint16_t io_direction;
     uint16_t io_polarity;
     uint16_t io_pullup;
     uint16_t io_interrupt_chg;
     uint16_t io_interrupt_en;
+    uint16_t io_output_latch;
 
 } MCP23017;
 
@@ -98,6 +100,11 @@ uint16_t MCP23017_GetInterruptEnable(MCP23017 *dev);
 void MCP23017_SetInterruptEnable(MCP23017 *dev, uint16_t *interrupt);
 uint8_t MCP23017_GetSingleInterruptEnable(MCP23017 *dev, uint8_t gpio);
 void MCP23017_SetSingleInterruptEnable(MCP23017 *dev, uint8_t interrupt, uint8_t gpio);
+
+uint16_t MCP23017_GetOutputLatch(MCP23017 *dev);
+void MCP23017_SetOutputLatch(MCP23017 *dev, uint16_t *interrupt);
+uint8_t MCP23017_GetSingleOutputLatch(MCP23017 *dev, uint8_t gpio);
+void MCP23017_SetSingleOutputLatch(MCP23017 *dev, uint8_t interrupt, uint8_t gpio);
 
 // Direct register manipulation
 

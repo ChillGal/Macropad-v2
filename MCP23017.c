@@ -4,8 +4,8 @@
  *  
  *  Author: Jennifer Chan
  *  Created: 22/03/2025
- *  Updated: 26/03/2025
- *  Revision: 0.1
+ *  Updated: 12/04/2025
+ *  Revision: 0.0.1
  *  Datasheet: https://ww1.microchip.com/downloads/aemDocuments/documents/APID/ProductDocuments/DataSheets/MCP23017-Data-Sheet-DS20001952.pdf
  * 
 */
@@ -34,18 +34,23 @@ uint8_t MCP23017_Initialise(MCP23017 *dev, i2c_inst_t *i2c_instance, uint8_t mcp
     // Setup struct
     dev->i2c_instance= i2c_instance;
     dev->mcp23017_i2c_addr = mcp23017_address;
+    dev->io_value = 0;
     dev->io_configuration = 0;
     dev->io_direction = 0;
     dev->io_polarity = 0;
     dev->io_pullup = 0;
     dev->io_interrupt_chg = 0;
     dev->io_interrupt_en = 0;
+    dev->io_output_latch = 0;
+    
     return 0;
 }
 
 // Read all 16 GPIOs at once
 uint16_t MCP23017_GetIO(MCP23017 *dev) {
-    return (MCP23017_ReadRegister(dev, MCP23017_REG_GPIOA) << 8) + MCP23017_ReadRegister(dev, MCP23017_REG_GPIOB);
+    uint16_t ioVal = (MCP23017_ReadRegister(dev, MCP23017_REG_GPIOA) << 8) + MCP23017_ReadRegister(dev, MCP23017_REG_GPIOB);
+    dev->io_value = ioVal;
+    return ioVal;
 }
 
 // Writes all 16 IO at once
@@ -112,7 +117,9 @@ void MCP23017_SetSingleIO(MCP23017 *dev, uint8_t io, uint8_t gpio) {
 }
 
 uint16_t MCP23017_GetIODirection(MCP23017 *dev) {
-    return (MCP23017_ReadRegister(dev, MCP23017_REG_IODIRA) << 8) + MCP23017_ReadRegister(dev, MCP23017_REG_IODIRB);
+    uint16_t ioDir = (MCP23017_ReadRegister(dev, MCP23017_REG_IODIRA) << 8) + MCP23017_ReadRegister(dev, MCP23017_REG_IODIRB);
+    dev->io_direction = ioDir;
+    return ioDir;
 }
 
 // Set all IO direction
@@ -187,9 +194,9 @@ void MCP23017_SetSingleIODirection(MCP23017 *dev, uint8_t direction, uint8_t gpi
 
 // Get IO polarity based on Bank - Bank A is IO 0-7, Bank B is IO 8-15
 uint16_t MCP23017_GetIOPolarity(MCP23017 *dev) {
-    uint16_t polarity_result = (MCP23017_ReadRegister(dev, MCP23017_REG_IPOLA) << 8) + MCP23017_ReadRegister(dev, MCP23017_REG_IPOLB);
-    dev->io_polarity = polarity_result;
-    return polarity_result;
+    uint16_t ioPol = (MCP23017_ReadRegister(dev, MCP23017_REG_IPOLA) << 8) + MCP23017_ReadRegister(dev, MCP23017_REG_IPOLB);
+    dev->io_polarity = ioPol;
+    return ioPol;
 
 }
 
@@ -265,7 +272,9 @@ void MCP23017_SetSingleIOPolarity(MCP23017 *dev, uint8_t polarity, uint8_t gpio)
 }
 
 uint16_t MCP23017_GetPullups(MCP23017 *dev) {
-    return (MCP23017_ReadRegister(dev, MCP23017_REG_IODIRA) << 8) + MCP23017_ReadRegister(dev, MCP23017_REG_IODIRB);
+    uint16_t ioPull = (MCP23017_ReadRegister(dev, MCP23017_REG_GPPUA) << 8) + MCP23017_ReadRegister(dev, MCP23017_REG_GPPUB);
+    dev->io_value = ioPull;
+    return ioPull;
 }
 
 // Set all IO pullups
@@ -535,6 +544,76 @@ void MCP23017_SetSingleInterruptEnable(MCP23017 *dev, uint8_t interrupt, uint8_t
     else if ((interrupt == 0) && (current_enable_interrupt != (current_enable_interrupt - bitmask))){ // Change from 1 to 0
         current_enable_interrupt = (current_enable_interrupt - bitmask);
         MCP23017_WriteRegister(dev,MCP23017_REG_GPINTENB, &current_enable_interrupt);
+    }
+    else {
+        return; // Do nothing
+    }
+}
+
+uint16_t MCP23017_GetOutputLatch(MCP23017 *dev) {
+    uint16_t OutLatch = (MCP23017_ReadRegister(dev, MCP23017_REG_OLATA) << 8) + MCP23017_ReadRegister(dev, MCP23017_REG_OLATB);
+    dev->io_output_latch = OutLatch;
+    return OutLatch;
+
+}
+
+void MCP23017_SetOutputLatch(MCP23017 *dev, uint16_t *OutputLatch) {
+    uint8_t *ptrOutLatch = malloc(sizeof(uint8_t));
+    *ptrOutLatch = *OutputLatch >> 8;
+    // Bit ordering: AAAA AAAA BBBB BBBB
+    MCP23017_WriteRegister(dev, MCP23017_REG_OLATA, ptrOutLatch);
+    *ptrOutLatch = *OutputLatch;
+    MCP23017_WriteRegister(dev, MCP23017_REG_OLATB, ptrOutLatch);
+    free(ptrOutLatch);
+}
+
+uint8_t MCP23017_GetSingleOutputLatch(MCP23017 *dev, uint8_t gpio) {
+    uint8_t data = 0;
+    uint8_t bitmask = 1; // 0000 0001
+    // Read Bank and extract bit
+    if (gpio < 7) { // Bank A
+        data = MCP23017_ReadRegister(dev, MCP23017_REG_OLATA);
+    }
+    else{ // Bank B
+        gpio =-8; // shift to keep within 0-7
+        data = MCP23017_ReadRegister(dev, MCP23017_REG_OLATB);
+    }
+    bitmask = bitmask << gpio; // Bit shift
+    if (bitmask == (data & bitmask)) { // Means bit is 1
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}
+
+void MCP23017_SetSingleOutputLatch(MCP23017 *dev, uint8_t interrupt, uint8_t gpio) {
+    uint8_t current_output_latch = 0;
+    uint8_t bitmask = 1; // 0000 0001
+
+    // Handle other values outside of 0 or 1
+    if (interrupt > 1) {
+        interrupt = 1;
+    }
+    
+    // Set the bitmask and get current polarity
+    if (gpio <= 7) { // Bank A
+        current_output_latch = MCP23017_ReadRegister(dev, MCP23017_REG_OLATA);
+    }
+    else { // Bank B
+        gpio =- 8;
+        current_output_latch = MCP23017_ReadRegister(dev, MCP23017_REG_OLATB);
+    }
+    bitmask = bitmask << gpio; // Shift bit to correct IO to change
+
+    // Compare polarity vs bank polarity
+    if ((interrupt == 1) && (current_output_latch != (current_output_latch | bitmask))) { // Change from 0 to 1
+        current_output_latch = (current_output_latch | bitmask);
+        MCP23017_WriteRegister(dev,MCP23017_REG_OLATA, &current_output_latch);
+    }
+    else if ((interrupt == 0) && (current_output_latch != (current_output_latch - bitmask))){ // Change from 1 to 0
+        current_output_latch = (current_output_latch - bitmask);
+        MCP23017_WriteRegister(dev,MCP23017_REG_OLATB, &current_output_latch);
     }
     else {
         return; // Do nothing
