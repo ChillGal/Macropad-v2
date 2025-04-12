@@ -3,19 +3,20 @@
 
 ## Features
 ### Complete
-- Nothing yet
+- Initial MCP23017 driver support
 
 ### In progress
-- Add MCP23017 support and figure out interrupt handling
+- Add interrupt handling to MCP23017
 - Add Neopixel support
+- Add SSD1306 support
 
 ### To do 
 - Add SD card support
-- Add SSD1306 support
 - Add USB HID support
 - Add USB Serial support and support for key configuration over serial - maybe via local web server?
 - Add Information(build instructions, pin configurations, specifications, etc) to README
 - Add PCB design files 
+- Add Button press handling
 
 ### Known issues
 - N/A
@@ -29,9 +30,11 @@ https://www.raspberrypi.com/documentation/microcontrollers/c_sdk.html
 ### Build
 Pending
 
-### MCP23017 driver progress
+## Implementation progress
+### MCP23017 driver
+Initial implementation is done. Further optimisation to be performed later
 Based on IOCON.BANK = 0 in datasheet
-#### Registers Done
+#### Registers implemented
 - IO Direction
 - IO Polarity
 - IO Interrupt Enable
@@ -39,8 +42,9 @@ Based on IOCON.BANK = 0 in datasheet
 - IO Interrupt Control (Interrupt on change)
 - IO Values
 - IO Pullups
-#### Registers needing implementation
 - Interrupt Flag
 - Interrupt Captured Value
-- Output Latching
 - IO Expander Configuration
+
+### SSD1306 driver
+Intial implementation started.
