@@ -21,6 +21,8 @@ typedef struct {
     // I2C instance/Handle
     i2c_inst_t *i2c_instance;
     uint8_t ssd1306_i2c_addr;
+    uint8_t height;
+    uint8_t width;
 
 } SSD1306;
 
