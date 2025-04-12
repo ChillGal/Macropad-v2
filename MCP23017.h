@@ -53,7 +53,9 @@ typedef struct {
     uint16_t io_interrupt_chg;
     uint16_t io_interrupt_en;
     uint16_t io_output_latch;
-
+    uint16_t io_interrupt_flag;
+    uint16_t io_interrupt_cap;
+    uint16_t expander_config;
 } MCP23017;
 
 uint8_t MCP23017_Initialise(MCP23017 *dev, i2c_inst_t *i2c_instance, uint8_t MCP23017_ADDRESS);
@@ -101,10 +103,25 @@ void MCP23017_SetInterruptEnable(MCP23017 *dev, uint16_t *interrupt);
 uint8_t MCP23017_GetSingleInterruptEnable(MCP23017 *dev, uint8_t gpio);
 void MCP23017_SetSingleInterruptEnable(MCP23017 *dev, uint8_t interrupt, uint8_t gpio);
 
+// Output Latches
 uint16_t MCP23017_GetOutputLatch(MCP23017 *dev);
 void MCP23017_SetOutputLatch(MCP23017 *dev, uint16_t *interrupt);
 uint8_t MCP23017_GetSingleOutputLatch(MCP23017 *dev, uint8_t gpio);
 void MCP23017_SetSingleOutputLatch(MCP23017 *dev, uint8_t interrupt, uint8_t gpio);
+
+// IO Expander Configuration
+uint16_t MCP23017_GetIOExpanderConfiguration(MCP23017 *dev);
+void MCP23017_SetIOExpanderConfiguration(MCP23017 *dev, uint16_t *IOConfiguration);
+uint8_t MCP23017_GetSingleIOExpanderConfiguration(MCP23017 *dev, uint8_t gpio);
+void MCP23017_SetSingleIOExpanderConfiguration(MCP23017 *dev, uint8_t configuration, uint8_t gpio);
+
+// Interrupt Flags (Read-Only)
+uint16_t MCP23017_GetInterruptFlag(MCP23017 *dev);
+uint8_t MCP23017_GetSingleInterruptFlag(MCP23017 *dev, uint8_t gpio);
+
+// Interrupts Capture (Read-Only)
+uint16_t MCP23017_GetInterruptCapture(MCP23017 *dev);
+uint8_t MCP23017_GetSingleInterruptCapture(MCP23017 *dev, uint8_t gpio);
 
 // Direct register manipulation
 
