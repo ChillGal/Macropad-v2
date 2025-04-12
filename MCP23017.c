@@ -26,8 +26,6 @@
 #include <malloc.h>
 
 uint8_t MCP23017_Initialise(MCP23017 *dev, i2c_inst_t *i2c_instance, uint8_t mcp23017_address) {
-    
-    
     // Checks HW I2C is functional + Valid MCP23017 address range
     if (i2c_instance == NULL || mcp23017_address < 0b0100000 || mcp23017_address > 0b0100111) { // 0x20 to 0x27
         return 1;
@@ -40,21 +38,25 @@ uint8_t MCP23017_Initialise(MCP23017 *dev, i2c_inst_t *i2c_instance, uint8_t mcp
     dev->io_direction = 0;
     dev->io_polarity = 0;
     dev->io_pullup = 0;
-    dev->io_interrupt = 0;
-
+    dev->io_interrupt_chg = 0;
+    dev->io_interrupt_en = 0;
     return 0;
 }
 
 // Read all 16 GPIOs at once
-uint8_t MCP23017_GetIO(MCP23017 *dev) {
-    return MCP23017_ReadRegister(dev, MCP23017_REG_GPIOA); // Bank A
-    //MCP23017_ReadRegister(dev, MCP23017_REG_GPIOB); // Bank B
+uint16_t MCP23017_GetIO(MCP23017 *dev) {
+    return (MCP23017_ReadRegister(dev, MCP23017_REG_GPIOA) << 8) + MCP23017_ReadRegister(dev, MCP23017_REG_GPIOB);
 }
 
 // Writes all 16 IO at once
-void MCP23017_SetIO(MCP23017 *dev, uint8_t *data) {
-    MCP23017_WriteRegister(dev, MCP23017_REG_GPIOA, data);
-    // MCP23017_WriteRegister(dev, MCP23017_REG_GPIOB, data);
+void MCP23017_SetIO(MCP23017 *dev, uint16_t *data) {
+    uint8_t *ptrIO = malloc(sizeof(uint8_t));
+    *ptrIO = *data >> 8;
+    // Bit ordering: AAAA AAAA BBBB BBBB
+    MCP23017_WriteRegister(dev, MCP23017_REG_GPIOA, ptrIO);
+    *ptrIO = *data;
+    MCP23017_WriteRegister(dev, MCP23017_REG_GPIOB, ptrIO);
+    free(ptrIO);
 }
 
 uint8_t MCP23017_GetSingleIO(MCP23017 *dev, uint8_t gpio) {
@@ -64,12 +66,10 @@ uint8_t MCP23017_GetSingleIO(MCP23017 *dev, uint8_t gpio) {
     // Read Bank and extract bit
     if (gpio < 7) { // Bank A
         data = MCP23017_ReadRegister(dev, MCP23017_REG_GPIOA);
-
     }
     else { // Bank B
         gpio =-8; // shift to keep within 0-7
         data = MCP23017_ReadRegister(dev, MCP23017_REG_GPIOB);
-        //printf("RAW DATA B: %d\n",data);
     }
     bitmask = bitmask << gpio;
     if (bitmask == (data & bitmask)) { // Means bit is 1
@@ -111,20 +111,19 @@ void MCP23017_SetSingleIO(MCP23017 *dev, uint8_t io, uint8_t gpio) {
     }
 }
 
-uint8_t MCP23017_GetIODirection(MCP23017 *dev, uint8_t bank) {
-    // Determine Bank to read
-    if (bank == 0) {
-        return MCP23017_ReadRegister(dev, MCP23017_REG_IODIRA);
-    }
-    else {
-        return MCP23017_ReadRegister(dev, MCP23017_REG_IODIRB);
-    }
+uint16_t MCP23017_GetIODirection(MCP23017 *dev) {
+    return (MCP23017_ReadRegister(dev, MCP23017_REG_IODIRA) << 8) + MCP23017_ReadRegister(dev, MCP23017_REG_IODIRB);
 }
 
 // Set all IO direction
-void MCP23017_SetIODirection(MCP23017 *dev, uint8_t *direction) {
-    MCP23017_WriteRegister(dev, MCP23017_REG_IODIRA, direction);
-    // MCP23017_WriteRegister(dev,MCP23017_REG_IODIRA, direction);
+void MCP23017_SetIODirection(MCP23017 *dev, uint16_t *direction) {
+    uint8_t *ptrDir = malloc(sizeof(uint8_t));
+    *ptrDir = *direction >> 8;
+    // Bit ordering: AAAA AAAA BBBB BBBB
+    MCP23017_WriteRegister(dev, MCP23017_REG_IODIRA, ptrDir);
+    *ptrDir = *direction;
+    MCP23017_WriteRegister(dev, MCP23017_REG_IODIRB, ptrDir);
+    free(ptrDir);
 }
 
 // Get value of IO specified by <gpio>
@@ -187,20 +186,22 @@ void MCP23017_SetSingleIODirection(MCP23017 *dev, uint8_t direction, uint8_t gpi
 }
 
 // Get IO polarity based on Bank - Bank A is IO 0-7, Bank B is IO 8-15
-uint8_t MCP23017_GetIOPolarity(MCP23017 *dev, uint8_t bank) {
-    // Determine Bank to read
-    if (bank = 0) {
-        return MCP23017_ReadRegister(dev, MCP23017_REG_IPOLA);
-    }
-    else {
-        return MCP23017_ReadRegister(dev, MCP23017_REG_IPOLB);
-    }
+uint16_t MCP23017_GetIOPolarity(MCP23017 *dev) {
+    uint16_t polarity_result = (MCP23017_ReadRegister(dev, MCP23017_REG_IPOLA) << 8) + MCP23017_ReadRegister(dev, MCP23017_REG_IPOLB);
+    dev->io_polarity = polarity_result;
+    return polarity_result;
+
 }
 
 // Set all IO polarity
-void MCP23017_SetIOPolarity(MCP23017 *dev, uint8_t *polarity) {
-    MCP23017_WriteRegister(dev,MCP23017_REG_IPOLA, &polarity[0]);
-    MCP23017_WriteRegister(dev,MCP23017_REG_IPOLB, &polarity[1]);
+void MCP23017_SetIOPolarity(MCP23017 *dev, uint16_t *polarity) {
+    uint8_t *ptrPol = malloc(sizeof(uint8_t));
+    *ptrPol = *polarity >> 8;
+    // Bit ordering: AAAA AAAA BBBB BBBB
+    MCP23017_WriteRegister(dev, MCP23017_REG_IPOLA, ptrPol);
+    *ptrPol = *polarity;
+    MCP23017_WriteRegister(dev, MCP23017_REG_IPOLB, ptrPol);
+    free(ptrPol);
 }
 
 // Get IO polarity based on GPIO
@@ -263,20 +264,19 @@ void MCP23017_SetSingleIOPolarity(MCP23017 *dev, uint8_t polarity, uint8_t gpio)
     }
 }
 
-uint8_t MCP23017_GetPullups(MCP23017 *dev, uint8_t bank) {
-    // Determine Bank to read
-    if (bank == 0) {
-        return MCP23017_ReadRegister(dev, MCP23017_REG_GPPUA);
-    }
-    else {
-        return MCP23017_ReadRegister(dev, MCP23017_REG_GPPUB);
-    }
+uint16_t MCP23017_GetPullups(MCP23017 *dev) {
+    return (MCP23017_ReadRegister(dev, MCP23017_REG_IODIRA) << 8) + MCP23017_ReadRegister(dev, MCP23017_REG_IODIRB);
 }
 
 // Set all IO pullups
-void MCP23017_SetPullups(MCP23017* dev, uint8_t* pullup) {
-    MCP23017_WriteRegister(dev, MCP23017_REG_GPPUA, pullup);
-    //MCP23017_WriteRegister(dev,MCP23017_REG_GPPUB, pullup);
+void MCP23017_SetPullups(MCP23017* dev, uint16_t* pullup) {
+    uint8_t *ptrPullup = malloc(sizeof(uint8_t));
+    *ptrPullup = *pullup >> 8;
+    // Bit ordering: AAAA AAAA BBBB BBBB
+    MCP23017_WriteRegister(dev, MCP23017_REG_GPPUA, ptrPullup);
+    *ptrPullup = *pullup;
+    MCP23017_WriteRegister(dev, MCP23017_REG_GPPUB, ptrPullup);
+    free(ptrPullup);
 }
 
 // Get single IO determined by <gpio>
@@ -333,18 +333,20 @@ void MCP23017_SetSinglePullup(MCP23017 *dev, uint8_t pullup, uint8_t gpio) {
     }
 }
 
-uint8_t MCP23017_GetInterruptChange(MCP23017 *dev, uint8_t bank) {
-    if (bank = 0) {
-        return MCP23017_ReadRegister(dev, MCP23017_REG_INTCONA);
-    }
-    else {
-        return MCP23017_ReadRegister(dev, MCP23017_REG_INTCONB);
-    }
+uint16_t MCP23017_GetInterruptChange(MCP23017 *dev) {
+    uint16_t intChg = (MCP23017_ReadRegister(dev, MCP23017_REG_INTCONA) << 8) + MCP23017_ReadRegister(dev, MCP23017_REG_INTCONB);
+    dev->io_interrupt_chg = intChg;
+    return intChg;
 }
 
-void MCP23017_SetInterruptChange(MCP23017 *dev, uint8_t *interrupt) {
-    MCP23017_WriteRegister(dev,MCP23017_REG_INTCONA, &interrupt[0]);
-    MCP23017_WriteRegister(dev,MCP23017_REG_INTCONB, &interrupt[1]);
+void MCP23017_SetInterruptChange(MCP23017 *dev, uint16_t *interrupt) {
+    uint8_t *ptrIntChg = malloc(sizeof(uint8_t));
+    *ptrIntChg = *interrupt >> 8;
+    // Bit ordering: AAAA AAAA BBBB BBBB
+    MCP23017_WriteRegister(dev, MCP23017_REG_INTCONA, ptrIntChg);
+    *ptrIntChg = *interrupt;
+    MCP23017_WriteRegister(dev, MCP23017_REG_INTCONB, ptrIntChg);
+    free(ptrIntChg);
 }
 
 uint8_t MCP23017_GetSingleInterruptChange(MCP23017 *dev, uint8_t gpio) {
@@ -400,18 +402,20 @@ void MCP23017_SetSingleInterruptChange(MCP23017 *dev, uint8_t interrupt, uint8_t
     }
 }
 
-uint8_t MCP23017_GetDefaults(MCP23017 *dev, uint8_t bank) {
-    if (bank = 0) {
-        return MCP23017_ReadRegister(dev, MCP23017_REG_DEFVALA);
-    }
-    else {
-        return MCP23017_ReadRegister(dev, MCP23017_REG_DEFVALB);
-    }
+uint16_t MCP23017_GetDefaults(MCP23017 *dev) {
+    uint16_t defVal = (MCP23017_ReadRegister(dev, MCP23017_REG_DEFVALA) << 8) + MCP23017_ReadRegister(dev, MCP23017_REG_DEFVALB);
+    dev->io_interrupt_chg = defVal;
+    return defVal;
 }
 
-void MCP23017_SetDefaults(MCP23017 *dev, uint8_t *defaults) {
-    MCP23017_WriteRegister(dev,MCP23017_REG_DEFVALA, &defaults[0]);
-    MCP23017_WriteRegister(dev,MCP23017_REG_DEFVALB, &defaults[1]);
+void MCP23017_SetDefaults(MCP23017 *dev, uint16_t *defaults) {
+    uint8_t *ptrDefVal = malloc(sizeof(uint8_t));
+    *ptrDefVal = *defaults >> 8;
+    // Bit ordering: AAAA AAAA BBBB BBBB
+    MCP23017_WriteRegister(dev, MCP23017_REG_DEFVALA, ptrDefVal);
+    *ptrDefVal = *defaults;
+    MCP23017_WriteRegister(dev, MCP23017_REG_DEFVALB, ptrDefVal);
+    free(ptrDefVal);
 }
 
 uint8_t MCP23017_GetSingleDefault(MCP23017 *dev, uint8_t gpio) {
@@ -467,18 +471,21 @@ void MCP23017_SetSingleDefault(MCP23017 *dev, uint8_t defaults, uint8_t gpio) {
     }
 }
 
-uint8_t MCP23017_GetInterruptEnable(MCP23017 *dev, uint8_t bank) {
-    if (bank = 0) {
-        return MCP23017_ReadRegister(dev, MCP23017_REG_GPINTENA);
-    }
-    else {
-        return MCP23017_ReadRegister(dev, MCP23017_REG_GPINTENB);
-    }
+uint16_t MCP23017_GetInterruptEnable(MCP23017 *dev) {
+    uint16_t intEn = (MCP23017_ReadRegister(dev, MCP23017_REG_GPINTENA) << 8) + MCP23017_ReadRegister(dev, MCP23017_REG_GPINTENB);
+    dev->io_interrupt_en = intEn;
+    return intEn;
+
 }
 
-void MCP23017_SetInterruptEnable(MCP23017 *dev, uint8_t *interrupt) {
-    MCP23017_WriteRegister(dev,MCP23017_REG_GPINTENA, &interrupt[0]);
-    MCP23017_WriteRegister(dev,MCP23017_REG_GPINTENB, &interrupt[1]);
+void MCP23017_SetInterruptEnable(MCP23017 *dev, uint16_t *interrupt) {
+    uint8_t *ptrIntEn = malloc(sizeof(uint8_t));
+    *ptrIntEn = *interrupt >> 8;
+    // Bit ordering: AAAA AAAA BBBB BBBB
+    MCP23017_WriteRegister(dev, MCP23017_REG_GPINTENA, ptrIntEn);
+    *ptrIntEn = *interrupt;
+    MCP23017_WriteRegister(dev, MCP23017_REG_GPINTENB, ptrIntEn);
+    free(ptrIntEn);
 }
 
 uint8_t MCP23017_GetSingleInterruptEnable(MCP23017 *dev, uint8_t gpio) {
@@ -536,8 +543,8 @@ void MCP23017_SetSingleInterruptEnable(MCP23017 *dev, uint8_t interrupt, uint8_t
 
 // Reads 1 byte into <data> from the register specified by <reg_address>
 uint8_t MCP23017_ReadRegister(MCP23017* dev, uint8_t reg_address) {
-    uint8_t* data = malloc(sizeof(uint8_t));
-    uint8_t* reg = malloc(sizeof(uint8_t));
+    uint8_t *data = malloc(sizeof(uint8_t));
+    uint8_t *reg = malloc(sizeof(uint8_t));
     *reg = reg_address;
     i2c_write_blocking(dev->i2c_instance, dev->mcp23017_i2c_addr, reg, 1, true);
     free(reg);
@@ -560,7 +567,7 @@ uint8_t* MCP23017_ReadRegisters(MCP23017 *dev, uint8_t reg_address, uint8_t leng
 
 // Writes all of <data> to the register specified by <reg_address>
 void MCP23017_WriteRegister(MCP23017 *dev, uint8_t reg_address, uint8_t *data) {
-    uint8_t* reg = malloc(sizeof(uint8_t));
+    uint8_t *reg = malloc(sizeof(uint8_t));
     *reg = reg_address;
     i2c_write_blocking(dev->i2c_instance, dev->mcp23017_i2c_addr, reg, 1, true);
     free(reg);

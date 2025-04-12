@@ -49,52 +49,53 @@ typedef struct {
     uint16_t io_direction;
     uint16_t io_polarity;
     uint16_t io_pullup;
-    uint16_t io_interrupt;
+    uint16_t io_interrupt_chg;
+    uint16_t io_interrupt_en;
 
 } MCP23017;
 
 uint8_t MCP23017_Initialise(MCP23017 *dev, i2c_inst_t *i2c_instance, uint8_t MCP23017_ADDRESS);
 
 // IO
-uint8_t MCP23017_GetIO(MCP23017 *dev);
-void MCP23017_SetIO(MCP23017 *dev, uint8_t *data);
+uint16_t MCP23017_GetIO(MCP23017 *dev);
+void MCP23017_SetIO(MCP23017 *dev, uint16_t *data);
 uint8_t MCP23017_GetSingleIO(MCP23017 *dev, uint8_t gpio);
 void MCP23017_SetSingleIO(MCP23017 *dev, uint8_t value, uint8_t gpio);
 
 // IO direction
-uint8_t MCP23017_GetIODirection(MCP23017 *dev, uint8_t bank);
-void MCP23017_SetIODirection(MCP23017 *dev, uint8_t *direction);
+uint16_t MCP23017_GetIODirection(MCP23017 *dev);
+void MCP23017_SetIODirection(MCP23017 *dev, uint16_t *direction);
 uint8_t MCP23017_GetSingleIODirection(MCP23017 *dev, uint8_t gpio);
 void MCP23017_SetSingleIODirection(MCP23017 *dev, uint8_t direction, uint8_t gpio);
 
 // IO polarity
-uint8_t MCP23017_GetIOPolarity(MCP23017 *dev, uint8_t bank);
-void MCP23017_SetIOPolarity(MCP23017 *dev, uint8_t *polarity);
+uint16_t MCP23017_GetIOPolarity(MCP23017 *dev);
+void MCP23017_SetIOPolarity(MCP23017 *dev, uint16_t *polarity);
 uint8_t MCP23017_GetSingleIOPolarity(MCP23017 *dev, uint8_t gpio);
 void MCP23017_SetSingleIOPolarity(MCP23017 *dev, uint8_t polarity, uint8_t gpio);
 
 // IO pullups
-uint8_t MCP23017_GetPullups(MCP23017 *dev, uint8_t bank);
-void MCP23017_SetPullups(MCP23017 *dev, uint8_t *pullup);
+uint16_t MCP23017_GetPullups(MCP23017 *dev);
+void MCP23017_SetPullups(MCP23017 *dev, uint16_t *pullup);
 uint8_t MCP23017_GetSinglePullup(MCP23017 *dev, uint8_t gpio);
 void MCP23017_SetSinglePullup(MCP23017 *dev, uint8_t pullup, uint8_t gpio);
 
 // Interrupt on IO change
-uint8_t MCP23017_GetInterruptChange(MCP23017 *dev, uint8_t bank);
-void MCP23017_SetInterruptChange(MCP23017 *dev, uint8_t *interrupt);
+uint16_t MCP23017_GetInterruptChange(MCP23017 *dev);
+void MCP23017_SetInterruptChange(MCP23017 *dev, uint16_t *interrupt);
 uint8_t MCP23017_GetSingleInterruptChange(MCP23017 *dev, uint8_t gpio);
 void MCP23017_SetSingleInterruptChange(MCP23017 *dev, uint8_t interrupt, uint8_t gpio);
 
 
 // Default values to compare against for interrupt on change
-uint8_t MCP23017_GetDefaults(MCP23017 *dev, uint8_t bank);
-void MCP23017_SetDefaults(MCP23017 *dev, uint8_t *defaults);
+uint16_t MCP23017_GetDefaults(MCP23017 *dev);
+void MCP23017_SetDefaults(MCP23017 *dev, uint16_t *defaults);
 uint8_t MCP23017_GetSingleDefault(MCP23017 *dev, uint8_t gpio);
 void MCP23017_SetSingleDefault(MCP23017 *dev, uint8_t defaults, uint8_t gpio);
 
 // GPIO interrupt enable
-uint8_t MCP23017_GetInterruptEnable(MCP23017 *dev, uint8_t bank);
-void MCP23017_SetInterruptEnable(MCP23017 *dev, uint8_t *interrupt);
+uint16_t MCP23017_GetInterruptEnable(MCP23017 *dev);
+void MCP23017_SetInterruptEnable(MCP23017 *dev, uint16_t *interrupt);
 uint8_t MCP23017_GetSingleInterruptEnable(MCP23017 *dev, uint8_t gpio);
 void MCP23017_SetSingleInterruptEnable(MCP23017 *dev, uint8_t interrupt, uint8_t gpio);
 
